@@ -125,8 +125,7 @@
     </script>
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
-        const API_KEY = 'AIzaSyDxV-US7bb_Q2Jbo1V69P9gzbSvp-SzDHM';
-        const genAI = new GoogleGenerativeAI(API_KEY);
+        const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
         async function run() {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
