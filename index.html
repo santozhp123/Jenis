@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .chat-body {
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 15px;
+            position: relative;
+            display: inline-block;
+            word-wrap: break-word;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background-color: #DCF8C6;
+            border-top-right-radius: 0;
+        }
+
+        .chat-message.bot {
+            align-self: flex-start;
+            background-color: #F1F0F0;
+            border-top-left-radius: 0;
+        }
+
+        .chat-input {
+            display: flex;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            line-height: 35px;
+            font-size: 18px;
+            padding: 10px;
+            border: none;
+        }
+
+        .chat-input button {
+            padding: 10px;
+            background-color: #4CAF50;
+            border-bottom-right-radius: 15px;
+            border-top-right-radius: 15px;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #45a049;
+        }
+
+        #response-area {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">Jenny</div>
+        <div class="chat-body" id="chat-body">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-input">
+            <input id="prompt" type="text" placeholder="Type a message...">
+            <button id="gen-btn">Send</button>
+        </div>
+    </div>
+
+    <textarea id="response-area" cols="30" rows="10"></textarea>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+        const API_KEY = 'AIzaSyDxV-US7bb_Q2Jbo1V69P9gzbSvp-SzDHM';
+        const genAI = new GoogleGenerativeAI(API_KEY);
+
+        async function run() {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = document.getElementById('prompt').value;
+
+            if (prompt.trim() === "") return;
+
+            // Display user's message
+            const chatBody = document.getElementById('chat-body');
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user';
+            userMessage.textContent = prompt;
+            chatBody.appendChild(userMessage);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Clear the input
+            document.getElementById('prompt').value = '';
+
+            // Custom response logic
+            const customResponse = getCustomResponse(prompt);
+            if (customResponse) {
+                displayBotMessage(customResponse);
+            } else {
+                try {
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    const text = await response.text();
+                    displayBotMessage(text);
+                } catch (error) {
+                    console.error('Error generating response:', error);
+                }
+            }
+        }
+
+        function getCustomResponse(prompt) {
+            const responses = {
+                "hello": "Hi there! How can I help you today?",
+                "how are you": "I'm just a bot, but I'm doing great! How about you?",
+                "who is your devloper": "My devloper is Santosh Parajuli but he developed me by integrating gemini ai which is powered by Google.",
+                "what is your name": "I'm Jenny here to assist you with your questions."
+            };
+            const cleanedPrompt = normalizeInput(prompt);
+            return responses[cleanedPrompt] || null;
+        }
+
+        function normalizeInput(input) {
+            return input
+                .toLowerCase()
+                .replace(/[^\w\s]/gi, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function displayBotMessage(message) {
+            const chatBody = document.getElementById('chat-body');
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chat-message bot';
+            botMessage.textContent = message;
+            chatBody.appendChild(botMessage);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        document.getElementById('gen-btn').addEventListener('click', run);
+        document.getElementById('prompt').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') run();
+        });
+    </script>
+</body>
+</html>
