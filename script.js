@@ -58,9 +58,21 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
             const chatBody = document.getElementById('chat-body');
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-message bot';
-            botMessage.textContent = message;
             chatBody.appendChild(botMessage);
             chatBody.scrollTop = chatBody.scrollHeight;
+
+            let index = 0;
+
+            function typeMessage() {
+                if (index < message.length) {
+                    botMessage.textContent += message[index];
+                    index++;
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                    setTimeout(typeMessage, 30); // Adjust typing speed here
+                }
+            }
+
+            typeMessage();
         }
 
         document.getElementById('gen-btn').addEventListener('click', run);
